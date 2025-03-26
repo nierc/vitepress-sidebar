@@ -11,8 +11,14 @@ import { DefaultTheme } from "vitepress";
 // }
 function getMarkdownTitle(filePath: string): string {
   const content = fs.readFileSync(filePath, "utf-8");
-  const match = content.match(/title:\s*(.*)/);
-  return match ? match[1] : path.basename(filePath, ".md");
+  const match = content.match(/^#\s+(?<title>.+?)(\s*\{#.*?)?$/m);
+
+  if (match?.groups?.title) {
+    return match.groups.title.trim()
+  } else{
+    return path.basename(filePath, ".md")
+  }
+
 }
 
 export function generateSidebar(dir: string, preferredOrder: string[]): DefaultTheme.SidebarItem[] {
@@ -46,11 +52,13 @@ export function generateSidebar(dir: string, preferredOrder: string[]): DefaultT
     const items = files.map((file) => {
       const filePath = path.join(folderPath, file);
       const title = getMarkdownTitle(filePath);
+      console.log("title: "+ title )
       return { text: title, link: `/${path2}/${folder.name}/${file}` };
     });
 
     sidebar.push({
       text: folder.name,
+      collapsed: false,
       items: items,
     });
   });
